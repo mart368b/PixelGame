@@ -4,7 +4,7 @@ render_mode unshaded;
 // Buffer storing all the tiles to show
 // The buffer stores the tiles flattened so its size can be independant of the
 // actual size of the viewed tiles
-uniform int CONTENT[1000];
+uniform int CONTENT[3000];
 uniform vec2 TILE_GRID_OFFSET;
 uniform ivec2 TILE_GRID_SIZE;
 uniform float TILE_PIXEL_WIDTH;
@@ -36,7 +36,7 @@ void fragment() {
 	vec2 screen_size = 1.0 / SCREEN_PIXEL_SIZE;
 	// Get screen aspect ratio
 	float aspect_ratio = screen_size.y / screen_size.x;
-	vec2 square_uv = SCREEN_UV - TILE_GRID_OFFSET / screen_size - vec2(TILE_PIXEL_WIDTH)/screen_size/2.0;
+	vec2 square_uv = SCREEN_UV - TILE_GRID_OFFSET / screen_size;
 	vec2 grid_size = vec2(TILE_GRID_SIZE) * TILE_PIXEL_WIDTH;
 	vec2 screen_placement = square_uv * screen_size;
 	
@@ -44,7 +44,7 @@ void fragment() {
 		COLOR = vec4(0.0, 0.0, 0.0, 1.0);
 	} else {
 		vec2 grid_placement = screen_placement / grid_size;
-		vec2 grid_uv = ceil(grid_placement * vec2(TILE_GRID_SIZE)) / vec2(TILE_GRID_SIZE);
+		vec2 grid_uv = floor(grid_placement * vec2(TILE_GRID_SIZE)) / vec2(TILE_GRID_SIZE);
 		vec2 grid_index = grid_uv * vec2(TILE_GRID_SIZE);
 		// Find index into content buffer
 		float index_content = grid_index.x + grid_index.y * float(TILE_GRID_SIZE.x);

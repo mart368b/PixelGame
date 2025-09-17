@@ -1,7 +1,20 @@
 {
-	"air": 3,
-	"water": 1,
-	"grass": 2,
-	"none": 0,
-	"lava": 4
+	"air": {
+		"id": 3
+	},
+	"water": {
+		"id": 1
+	},
+	"water_source": {
+		"id": 1
+	},
+	"stone": {
+		"id": 2
+	},
+	"none": {
+		"id": 0
+	},
+	"lava": {
+		"id": 4
+	},
 }
