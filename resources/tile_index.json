@@ -1,3 +1,7 @@
 {
-	"air": 0
+	"air": 3,
+	"water": 1,
+	"grass": 2,
+	"none": 0,
+	"lava": 4
 }

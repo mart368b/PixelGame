@@ -5,9 +5,9 @@ render_mode unshaded;
 // The buffer stores the tiles flattened so its size can be independant of the
 // actual size of the viewed tiles
 uniform int CONTENT[1000];
-uniform vec2 OFFSET;
-// How many tiles should be show on the x axis
-uniform float TILES_PER_SCREEN;
+uniform vec2 TILE_GRID_OFFSET;
+uniform ivec2 TILE_GRID_SIZE;
+uniform float TILE_PIXEL_WIDTH;
 // Image of the differnet colors used for the tile_types
 uniform sampler2D TILE_TYPES;
 // how wide and tall is each color sampple in the TILE_TYPES image
@@ -36,19 +36,25 @@ void fragment() {
 	vec2 screen_size = 1.0 / SCREEN_PIXEL_SIZE;
 	// Get screen aspect ratio
 	float aspect_ratio = screen_size.y / screen_size.x;
-	vec2 offset_uv = SCREEN_UV + OFFSET;
-	// Make the each of the tiles actual squares
-	vec2 norm_index = floor(offset_uv * vec2(1.0, aspect_ratio)  * TILES_PER_SCREEN) / TILES_PER_SCREEN;
-	// Find the x and y index of the current tile
-	vec2 index_screen = norm_index * vec2(float(TILES_PER_SCREEN), float(TILES_PER_SCREEN));
-	// Find index into content buffer
-	float index_content = index_screen.x + index_screen.y * TILES_PER_SCREEN;
-	// Find tile_type
-	int tile_type = CONTENT[int(index_content)];
-	// Convert tile_type to a color
-	vec4 tile_color = get_tile_color(tile_type);
-	// Export the final color
-	COLOR = tile_color;
+	vec2 square_uv = SCREEN_UV - TILE_GRID_OFFSET / screen_size - vec2(TILE_PIXEL_WIDTH)/screen_size/2.0;
+	vec2 grid_size = vec2(TILE_GRID_SIZE) * TILE_PIXEL_WIDTH;
+	vec2 screen_placement = square_uv * screen_size;
+	
+	if (square_uv.x < 0.0 || square_uv.y < 0.0 || screen_placement.x > grid_size.x || screen_placement.y > grid_size.y) {
+		COLOR = vec4(0.0, 0.0, 0.0, 1.0);
+	} else {
+		vec2 grid_placement = screen_placement / grid_size;
+		vec2 grid_uv = ceil(grid_placement * vec2(TILE_GRID_SIZE)) / vec2(TILE_GRID_SIZE);
+		vec2 grid_index = grid_uv * vec2(TILE_GRID_SIZE);
+		// Find index into content buffer
+		float index_content = grid_index.x + grid_index.y * float(TILE_GRID_SIZE.x);
+		// Find tile_type
+		int tile_type = CONTENT[int(index_content)];
+		// Convert tile_type to a color
+		vec4 tile_color = get_tile_color(tile_type);
+		// Export the final color
+		COLOR = tile_color;
+	}
 }
 
 //void light() {

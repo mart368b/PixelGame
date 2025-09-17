@@ -2,27 +2,25 @@ extends Node
 
 ## Suposee to movee the tiles shown but doesnt look to work
 @export
-var shader_offset: Vector2:
+var tile_grid_offset: Vector2:
 	get: 
-		return 	self.material.get_shader_parameter("OFFSET")
+		return 	self.material.get_shader_parameter("TILE_GRID_OFFSET")
 	set(value):
-		self.material.set_shader_parameter("OFFSET", value)
-
-## Number of tiles along the x axis on the screen
-@export_range(1.0, 4000.0)
-var shader_tiles_per_screen: float:
-	get: 
-		return 	self.material.get_shader_parameter("TILES_PER_SCREEN")
-	set(value):
-		self.material.set_shader_parameter("TILES_PER_SCREEN", value)
-
-## Width of each area in the tile_type image
+		self.material.set_shader_parameter("TILE_GRID_OFFSET", value)
+		
 @export
-var tile_types_pixel_pr_tile: int:
+var tile_grid_size: Vector2i:
 	get:
-		return 	self.material.get_shader_parameter("TILE_TYPES_PIXEL_PR_TILE")
+		return 	self.material.get_shader_parameter("TILE_GRID_SIZE")
 	set(value):
-		self.material.set_shader_parameter("TILE_TYPES_PIXEL_PR_TILE", value)
+		self.material.set_shader_parameter("TILE_GRID_SIZE", value)
+
+@export
+var tile_pixel_width: float:
+	get:
+		return 	self.material.get_shader_parameter("TILE_PIXEL_WIDTH")
+	set(value):
+		self.material.set_shader_parameter("TILE_PIXEL_WIDTH", value)
 
 ## Image storing the color of diffferent tile_types
 @export
@@ -32,10 +30,17 @@ var tile_types: Texture2D:
 	set(value):
 		self.material.set_shader_parameter("TILE_TYPES", value)
 
-var tile_type_configuration: Dictionary = {}
+@export
+var tile_types_pixel_pr_tile: int:
+	get:
+		return 	self.material.get_shader_parameter("TILE_TYPES_PIXEL_PR_TILE")
+	set(value):
+		self.material.set_shader_parameter("TILE_TYPES_PIXEL_PR_TILE", value)
 
 ## Internal variable to save the current path to tile_type configuration json
 var _tile_type_config_path
+## Contianer for the loaded tile type configuration
+var tile_type_configuration: Dictionary = {}
 ## Path to tile type configuration file (*.json)
 ## This will fail and leave the configuration empty 
 ## if the file is not avaiable or the format is not correct
