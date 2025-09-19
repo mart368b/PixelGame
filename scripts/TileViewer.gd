@@ -95,8 +95,17 @@ var tile_type_config_path:
 			push_error(error_msg)
 			_tile_type_config_path = null
 
+var tile_types_n: Dictionary = {
+	"water_source": WaterSource.new(),
+	"water": Water.new(),
+	"lava": Lava.new(),
+}
+
 ## Get information about a given tile
 func get_tile_type(name: String) -> TileType:
+	if name in tile_types_n: 
+		return tile_types_n.get(name)
+	
 	if not name in tile_type_configuration:
 		var error_msg = "Failed to find tile type name {0}".format([name])
 		push_error(error_msg)
