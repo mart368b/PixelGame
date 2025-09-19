@@ -113,6 +113,13 @@ var content: PackedInt32Array:
 	set(value):
 		self.material.set_shader_parameter("CONTENT", value)
 
+@export
+var content_texture: Texture:
+	get:
+		return self.material.get_shader_parameter("CONTENT_TEXTURE")
+	set(value):
+		self.material.set_shader_parameter("CONTENT_TEXTURE", value)
+
 func _ready() -> void:
 	# Make sure to tell if the configuration is missing
 	if tile_type_config_path == null:

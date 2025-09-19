@@ -4,7 +4,7 @@ render_mode unshaded;
 // Buffer storing all the tiles to show
 // The buffer stores the tiles flattened so its size can be independant of the
 // actual size of the viewed tiles
-uniform int CONTENT[3000];
+uniform sampler2D CONTENT_TEXTURE : filter_nearest;
 uniform vec2 TILE_GRID_OFFSET;
 uniform ivec2 TILE_GRID_SIZE;
 uniform float TILE_PIXEL_WIDTH;
@@ -47,9 +47,9 @@ void fragment() {
 		vec2 grid_uv = floor(grid_placement * vec2(TILE_GRID_SIZE)) / vec2(TILE_GRID_SIZE);
 		vec2 grid_index = grid_uv * vec2(TILE_GRID_SIZE);
 		// Find index into content buffer
-		float index_content = grid_index.x + grid_index.y * float(TILE_GRID_SIZE.x);
+		vec4 data_color = texture(CONTENT_TEXTURE, grid_placement);
 		// Find tile_type
-		int tile_type = CONTENT[int(index_content)];
+		int tile_type = int(data_color.r * 255.0);
 		// Convert tile_type to a color
 		vec4 tile_color = get_tile_color(tile_type);
 		// Export the final color

@@ -200,7 +200,15 @@ func run_physics_tick():
 	map = new_map
 
 func update_tile_renderer():
+	var image = Image.create(_map_size.x, _map_size.y, false, Image.FORMAT_R8)
+	
+	for y in range(_map_size.y):
+		for x in range(_map_size.x):
+			var tile_id = map[x + y * _map_size.x].id
+			image.set_pixel(x, y, Color(float(tile_id) / 255.0, 0, 0, 1))
+			
 	tile_renderer.content = map.map(func(tile_type): return tile_type.id) as PackedInt32Array
+	tile_renderer.content_texture = ImageTexture.create_from_image(image)
 
 var _time_between_updates: float = 1.0 / 20.0
 var _time_to_next_update: float = _time_between_updates
