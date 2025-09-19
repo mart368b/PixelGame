@@ -11,7 +11,7 @@ var tile_grid_offset: Vector2:
 		self.material.set_shader_parameter("TILE_GRID_OFFSET", value)
 		
 @export
-var tile_grid_size: Vector2i:
+var tile_grid_size: Vector2:
 	get:
 		return 	self.material.get_shader_parameter("TILE_GRID_SIZE")
 	set(value):
@@ -95,8 +95,17 @@ var tile_type_config_path:
 			push_error(error_msg)
 			_tile_type_config_path = null
 
+var tile_types_n: Dictionary = {
+	"water_source": WaterSource.new(),
+	"water": Water.new(),
+	"lava": Lava.new(),
+}
+
 ## Get information about a given tile
 func get_tile_type(name: String) -> TileType:
+	if name in tile_types_n: 
+		return tile_types_n.get(name)
+	
 	if not name in tile_type_configuration:
 		var error_msg = "Failed to find tile type name {0}".format([name])
 		push_error(error_msg)
@@ -112,6 +121,13 @@ var content: PackedInt32Array:
 		return 	self.material.get_shader_parameter("CONTENT")
 	set(value):
 		self.material.set_shader_parameter("CONTENT", value)
+
+@export
+var content_texture: Texture:
+	get:
+		return self.material.get_shader_parameter("CONTENT_TEXTURE")
+	set(value):
+		self.material.set_shader_parameter("CONTENT_TEXTURE", value)
 
 func _ready() -> void:
 	# Make sure to tell if the configuration is missing

@@ -1,6 +1,6 @@
 extends Node
 
-const TileType := preload("res://scripts/TileType.gd")
+class_name TileLogic
 
 @export
 var tile_renderer: ColorRect;
@@ -127,64 +127,17 @@ func calculate_move(old_map: Array[TileType], new_map: Array[TileType], cord: Ve
 	match current_tile_type.name:
 		"none":
 			pass
-		"lava":
-			var connected_water = get_all_tiles_of(
-				new_map, 
-				cord, 
-				TOUCHING_TARGET, 
-				func(tile_type): return tile_type.name == "water"
-			)
-			if not connected_water.is_empty():
-				set_tile(new_map, cord, tile_renderer.get_tile_type("stone"))
-			else:
-				var below_cord = cord + Vector2i(0.0, 1.0)
-				var tile_below_tile = get_tile_bounded(new_map, below_cord)
-				if !tile_below_tile.is_solid():
-					set_tile(new_map, below_cord, current_tile_type)
-				elif tile_below_tile.name == "water":
-					set_tile(new_map, below_cord, tile_renderer.get_tile_type("stone"))
-		"water":
-			var below_tiles = get_all_tiles_of(
-				new_map, 
-				cord, 
-				[Direction.BottomLeft, Direction.Bottom, Direction.BottomRight], 
-				func(tile_type): return not tile_type.is_solid()
-			)
-			if below_tiles:
-				var selected_tile = below_tiles.pick_random()
-				set_tile(new_map, selected_tile.cord, current_tile_type)
-				set_tile(new_map, cord, tile_renderer.get_tile_type("air"))
-			else:
-				var side_tiles = get_all_tiles_of(
-					new_map, 
-					cord, 
-					[Direction.Left, Direction.Right], 
-					func(tile_type): return not tile_type.is_solid()
-				)
-				if side_tiles:
-					var selected_tile = side_tiles.pick_random()
-					set_tile(new_map, selected_tile.cord, current_tile_type)
-					set_tile(new_map, cord, tile_renderer.get_tile_type("air"))
-			pass
-		"water_source":
-			var free_spots = get_all_tiles_of(
-				new_map, 
-				cord, 
-				AROUND_TARGET, 
-				func(tile_type): return tile_type.name == "air"
-			)
-			for try in range(0, 5):
-				if not free_spots.is_empty():
-					var idx = randi() % free_spots.size()
-					var removed = free_spots.pop_at(idx)
-					set_tile(new_map, removed.cord, tile_renderer.get_tile_type("water"))
-				else: 
-					break
 		"stone":
 			pass
 		"air":
 			pass
 		_:
+			var tile = tile_renderer.get_tile_type(current_tile_type.name)
+			
+			if tile.has_method('calculate_move'):
+				tile.calculate_move(self, old_map, new_map, cord)
+				return
+			
 			var error_msg = "Unknown movement logic for " + current_tile_type.name
 			printerr(error_msg)
 			push_error(error_msg)
@@ -200,7 +153,15 @@ func run_physics_tick():
 	map = new_map
 
 func update_tile_renderer():
+	var image = Image.create(_map_size.x, _map_size.y, false, Image.FORMAT_R8)
+	
+	for y in range(_map_size.y):
+		for x in range(_map_size.x):
+			var tile_id = map[x + y * _map_size.x].id
+			image.set_pixel(x, y, Color(float(tile_id) / 255.0, 0, 0, 1))
+			
 	tile_renderer.content = map.map(func(tile_type): return tile_type.id) as PackedInt32Array
+	tile_renderer.content_texture = ImageTexture.create_from_image(image)
 
 var _time_between_updates: float = 1.0 / 20.0
 var _time_to_next_update: float = _time_between_updates

@@ -1,4 +1,5 @@
 extends Object
+class_name TileType
 
 var id: int
 var name: String
