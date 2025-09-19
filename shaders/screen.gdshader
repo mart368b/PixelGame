@@ -9,8 +9,8 @@ uniform vec2 TILE_GRID_OFFSET;
 uniform ivec2 TILE_GRID_SIZE;
 uniform float TILE_PIXEL_WIDTH;
 // Image of the differnet colors used for the tile_types
-uniform sampler2D TILE_TYPES;
-// how wide and tall is each color sampple in the TILE_TYPES image
+uniform sampler2D TILE_TYPES : filter_nearest;
+// how wide and tall is each color sampple in the TILE_TYPES image,
 uniform int TILE_TYPES_PIXEL_PR_TILE;
 
 /// retrieve the color of a tile_type
@@ -20,10 +20,8 @@ vec4 get_tile_color(int tile_type) {
 	// Figure out where the looked after tile_type is in TILE_TYPES
 	vec2 position = vec2(float((tile_type % int(tile_types_size.x))), float(tile_type) / tile_types_size.x);
 	
-	// move the sampler to the center of the tile_type color
-	float tile_offset = float(tile_types_size.x) / (tile_types_size.x * float(TILE_TYPES_PIXEL_PR_TILE));
 	// Find where to sample from TILE_TYPES to get tile_type color
-	vec2 sample_position = position / tile_types_size + tile_offset;
+	vec2 sample_position = position / tile_types_size;
 	return texture(TILE_TYPES, sample_position);
 }
 
