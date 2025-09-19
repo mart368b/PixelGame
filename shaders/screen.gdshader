@@ -6,7 +6,7 @@ render_mode unshaded;
 // actual size of the viewed tiles
 uniform sampler2D CONTENT_TEXTURE : filter_nearest;
 uniform vec2 TILE_GRID_OFFSET;
-uniform ivec2 TILE_GRID_SIZE;
+uniform vec2 TILE_GRID_SIZE;
 uniform float TILE_PIXEL_WIDTH;
 // Image of the differnet colors used for the tile_types
 uniform sampler2D TILE_TYPES : filter_nearest;
@@ -43,7 +43,7 @@ void fragment() {
 	} else {
 		vec2 grid_placement = screen_placement / grid_size;
 		vec2 grid_uv = floor(grid_placement * vec2(TILE_GRID_SIZE)) / vec2(TILE_GRID_SIZE);
-		vec2 grid_index = grid_uv * vec2(TILE_GRID_SIZE);
+		vec2 grid_index = grid_uv * TILE_GRID_SIZE;
 		// Find index into content buffer
 		vec4 data_color = texture(CONTENT_TEXTURE, grid_placement);
 		// Find tile_type

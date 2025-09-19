@@ -11,7 +11,7 @@ var tile_grid_offset: Vector2:
 		self.material.set_shader_parameter("TILE_GRID_OFFSET", value)
 		
 @export
-var tile_grid_size: Vector2i:
+var tile_grid_size: Vector2:
 	get:
 		return 	self.material.get_shader_parameter("TILE_GRID_SIZE")
 	set(value):

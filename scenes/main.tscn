@@ -9,7 +9,7 @@
 shader = ExtResource("1_o5qli")
 shader_parameter/CONTENT = PackedInt32Array(1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 shader_parameter/TILE_GRID_OFFSET = Vector2(64, 64)
-shader_parameter/TILE_GRID_SIZE = Vector2i(32, 32)
+shader_parameter/TILE_GRID_SIZE = Vector2(32, 32)
 shader_parameter/TILE_PIXEL_WIDTH = 8.0
 shader_parameter/TILE_TYPES = ExtResource("3_jyhfs")
 shader_parameter/TILE_TYPES_PIXEL_PR_TILE = 16
@@ -30,7 +30,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_sugp2")
 tile_grid_offset = Vector2(64, 64)
-tile_grid_size = Vector2i(32, 32)
+tile_grid_size = Vector2(32, 32)
 tile_pixel_width = 8.0
 tile_types = ExtResource("3_jyhfs")
 tile_types_pixel_pr_tile = 16
