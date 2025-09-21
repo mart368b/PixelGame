@@ -1,44 +1,29 @@
-[gd_scene load_steps=6 format=3 uid="uid://b0kjbxglwmt8x"]
+[gd_scene load_steps=2 format=3 uid="uid://b0kjbxglwmt8x"]
 
-[ext_resource type="Shader" uid="uid://bdtumiv40mxbj" path="res://shaders/screen.gdshader" id="1_o5qli"]
-[ext_resource type="Texture2D" uid="uid://cc7ff01krquop" path="res://resources/tiles.png" id="3_jyhfs"]
-[ext_resource type="Script" uid="uid://1as63mdyb8u4" path="res://scripts/TileViewerTool.gd" id="3_sugp2"]
-[ext_resource type="Script" uid="uid://ca46gmmbg624e" path="res://scripts/TileLogic.gd" id="4_jyhfs"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_v2lfg"]
-shader = ExtResource("1_o5qli")
-shader_parameter/CONTENT = PackedInt32Array(1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-shader_parameter/TILE_GRID_OFFSET = Vector2(64, 64)
-shader_parameter/TILE_GRID_SIZE = Vector2(32, 32)
-shader_parameter/TILE_PIXEL_WIDTH = 8.0
-shader_parameter/TILE_TYPES = ExtResource("3_jyhfs")
-shader_parameter/TILE_TYPES_PIXEL_PR_TILE = 16
+[ext_resource type="Script" uid="uid://duhoptnxy6nhw" path="res://scripts/computer_matrix_shader.gd" id="3_tbgi4"]
 
 [node name="Node" type="Node"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(573, 325)
 
-[node name="TileViewer" type="CanvasLayer" parent="Camera2D"]
-
-[node name="TilRenderer" type="ColorRect" parent="Camera2D/TileViewer"]
-material = SubResource("ShaderMaterial_v2lfg")
+[node name="Control" type="Control" parent="Camera2D" node_paths=PackedStringArray("debug_renderer")]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("3_sugp2")
-tile_grid_offset = Vector2(64, 64)
-tile_grid_size = Vector2(32, 32)
-tile_pixel_width = 8.0
-tile_types = ExtResource("3_jyhfs")
-tile_types_pixel_pr_tile = 16
-tile_type_config_path = "res://resources/tile_index.json"
-content = PackedInt32Array(1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+script = ExtResource("3_tbgi4")
+shader_file = "uid://dlcxq2dj1wo8c"
+debug_renderer = NodePath("TextureRect")
+map_size = 512
 
-[node name="TileLogic" type="Node" parent="Camera2D/TileViewer" node_paths=PackedStringArray("tile_renderer")]
-script = ExtResource("4_jyhfs")
-tile_renderer = NodePath("../TilRenderer")
-
-[connection signal="grid_input" from="Camera2D/TileViewer/TilRenderer" to="Camera2D/TileViewer/TileLogic" method="on_grid_input"]
+[node name="TextureRect" type="TextureRect" parent="Camera2D/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.5, 0.5)
