@@ -3,19 +3,10 @@ extends Control
 @export_file("*.glsl") var shader_file: String
 
 @export
-var tile_renderer: ColorRect;
+var debug_renderer: TextureRect;
 
-var map_size: int = 8
-var input := PackedFloat32Array([
-	0, 0, 2, 0, 0, 0, 2, 0,
-	0, 0, 2, 0, 0, 0, 2, 0,
-	0, 0, 2, 0, 0, 0, 2, 0,
-	0, 0, 2, 0, 0, 0, 2, 0,
-	0, 0, 2, 0, 0, 0, 2, 0,
-	0, 0, 2, 0, 0, 0, 2, 0,
-	0, 0, 2, 0, 0, 0, 2, 0,
-	3, 3, 3, 3, 3, 3, 3, 3
-])
+@export var map_size: int;
+var input := PackedFloat32Array()
 
 var rd: RenderingDevice
 var shader_rid: RID
@@ -23,6 +14,31 @@ var uniform_set: RID
 var pipeline: RID
 var buffer_rid: RID
 var map_size_rid: RID
+
+func _ready() -> void:
+	
+	input.resize(map_size*map_size)
+	
+	for y in range(map_size - 1):
+		var row = PackedFloat32Array()
+		row.resize(map_size)
+		row.fill(0.0)
+		input.append_array(row)
+	
+	var bedrock = PackedFloat32Array()
+	bedrock.resize(map_size)
+	bedrock.fill(2.0)
+	input.append_array(bedrock)
+	
+	for y in range(map_size - 1):
+		input[map_size / 2 % map_size + y * map_size] = 1.0
+	
+	input[10 % map_size + 10 * map_size] = 1
+		
+	print("MapSize: %d" % map_size)
+	print("TileCount: %d" % (map_size*map_size))
+	print("Input Size: %d" % input.size())
+	
 
 func init_gpu():
 	rd = RenderingServer.create_local_rendering_device()
@@ -58,6 +74,9 @@ func _process(delta: float) -> void:
 	if rd == null:
 		init_gpu()
 
+	var input_bytes = input.to_byte_array()
+	rd.buffer_update(buffer_rid, 0, input_bytes.size(), input_bytes)
+
 	var compute_list := rd.compute_list_begin()
 	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
 	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
@@ -71,23 +90,23 @@ func _process(delta: float) -> void:
 	# Read back the data from the buffer
 	var output_bytes := rd.buffer_get_data(buffer_rid)
 	var output := output_bytes.to_float32_array()
-	print("Input: ", input)
-	print("Output: ", output)
-
+	
 	input = output
 	
 	update_texture()
 
 func update_texture():
-	var image = Image.create(map_size, map_size, false, Image.FORMAT_R8)
-	
+	var debugImage = Image.create(map_size, map_size, false, Image.FORMAT_RGB8)
+
 	for y in range(map_size):
 		for x in range(map_size):
 			var tile_id = input[x % map_size + y * map_size]
-			print(tile_id)
-			image.set_pixel(x, y, Color(float(tile_id) / 255.0, 0, 0, 1))
-			
-	tile_renderer.content_texture = ImageTexture.create_from_image(image)
+			if tile_id == 0.0:
+				debugImage.set_pixel(x, y, Color(255, 255, 255, 1))
+			else:
+				debugImage.set_pixel(x, y, Color(255.0 / float(tile_id), 0, 0, 1))
+
+	debug_renderer.texture = ImageTexture.create_from_image(debugImage)
 
 func _notification(what: int) -> void:
 	# Object destructor, triggered before the engine deletes this Node.

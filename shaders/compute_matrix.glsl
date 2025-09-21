@@ -23,10 +23,10 @@ void main() {
     // Get the index of the current invocation
     uint index = gl_GlobalInvocationID.x;
 
-    // The last index in the matrix (1D array) should be the first index
-    // in the next row (2D array)
+    // We want to update from the bottom to the top, so we invert the index
     uint currentIndex = static_data.size * static_data.size - index - 1;
 
+    // Get the tile type at the current index
     int tileType = int(map_data.data[currentIndex]);
 
     // If the tile is empty, skip it
@@ -34,26 +34,32 @@ void main() {
         return;
     }
 
-    // if the tile is sand (2) try to move it down, if not possible try to move it down-left or down-right
-    if (tileType == 2) {
+    // if the tile is water (1) try to move it down, if not possible try to move it down-left or down-right
+    if (tileType == 1) {
         // If the tile below is empty, move down
-        if (currentIndex + static_data.size < static_data.size * static_data.size &&
-            map_data.data[currentIndex + static_data.size] == 0) {
+        if (
+            currentIndex + static_data.size < static_data.size * static_data.size &&
+            map_data.data[currentIndex + static_data.size] == 0
+        ) {
             move(int(currentIndex), int(currentIndex + static_data.size));
             return;
         }
         // If the tile down-left is empty, move down-left
-        if (currentIndex + static_data.size - 1 >= 0 &&
+        if (
+            currentIndex + static_data.size - 1 >= 0 &&
             currentIndex + static_data.size - 1 < static_data.size * static_data.size &&
-            currentIndex % static_data.size != 0 && // Not on the left edge
-            map_data.data[currentIndex + static_data.size - 1] == 0) {
+            currentIndex % static_data.size != 0 &&
+            map_data.data[currentIndex + static_data.size - 1] == 0
+        ) {
             move(int(currentIndex), int(currentIndex + static_data.size - 1));
             return;
         }
         // If the tile down-right is empty, move down-right
-        if (currentIndex + static_data.size + 1 < static_data.size * static_data.size &&
-            (currentIndex + 1) % static_data.size != 0 && // Not on the right edge
-            map_data.data[currentIndex + static_data.size + 1] == 0) {
+        if (
+            currentIndex + static_data.size + 1 < static_data.size * static_data.size &&
+            (currentIndex + 1) % static_data.size != 0 &&
+            map_data.data[currentIndex + static_data.size + 1] == 0
+        ) {
             move(int(currentIndex), int(currentIndex + static_data.size + 1));
             return;
         }
