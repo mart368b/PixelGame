@@ -1,23 +1,17 @@
-[gd_scene load_steps=2 format=3 uid="uid://b0kjbxglwmt8x"]
-
-[ext_resource type="Script" uid="uid://duhoptnxy6nhw" path="res://scripts/computer_matrix_shader.gd" id="3_tbgi4"]
+[gd_scene format=3 uid="uid://b0kjbxglwmt8x"]
 
 [node name="Node" type="Node"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(573, 325)
 
-[node name="Control" type="Control" parent="Camera2D" node_paths=PackedStringArray("debug_renderer")]
+[node name="Control" type="Control" parent="Camera2D"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("3_tbgi4")
-shader_file = "uid://dlcxq2dj1wo8c"
-debug_renderer = NodePath("TextureRect")
-map_size = 512
 
 [node name="TextureRect" type="TextureRect" parent="Camera2D/Control"]
 layout_mode = 1
