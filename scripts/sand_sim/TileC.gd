@@ -10,5 +10,5 @@ enum TILE_TYPE {
 
 var tile_type: TILE_TYPE = TILE_TYPE.NONE
 
-func _init(new_tile_type: TILE_TYPE) -> void:
+func _init(new_tile_type: TILE_TYPE = TILE_TYPE.NONE) -> void:
 	self.tile_type = new_tile_type

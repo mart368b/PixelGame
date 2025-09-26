@@ -5,7 +5,7 @@ var tiles: Array
 var cord: Vector2i
 var size: Vector2i
 
-func _init(chunk_cord: Vector2i, chunk_size: Vector2i):
+func _init(chunk_cord: Vector2i = Vector2i(0.0, 0.0), chunk_size: Vector2i = Vector2i(0.0, 0.0)):
 	self.cord = chunk_cord
 	self.size = chunk_size
 	
@@ -13,5 +13,5 @@ func _init(chunk_cord: Vector2i, chunk_size: Vector2i):
 	for y in range(0, chunk_size.y):
 		var row = Array()
 		for x in range(0, chunk_size.x):
-			row.append(TileC.new(TileC.TILE_TYPE.AIR))
+			row.append(TileC.new())
 		tiles.append(row)

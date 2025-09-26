@@ -6,6 +6,9 @@ class_name World
 @export
 var loaded_chunks: Dictionary
 
+@export
+var renderer: TextureRect;
+
 var _additional_chunks: Vector2i = Vector2i()
 @export
 var additional_chunks: Vector2i:
@@ -49,38 +52,50 @@ var camera: Camera2D:
 @export
 var pan_speed: Vector2 = Vector2(1.0, 1.0)
 
+var texture: Image
+var chunk_texture: Image
+
 func load_chunk(cord: Vector2i):
 	if cord in loaded_chunks:
 		return
 	
-	loaded_chunks[cord] = Chunk.new(cord, chunk_size)
+	loaded_chunks[cord] = Chunk.new(cord, _chunk_size)
+
+func get_camera_view_rect():
+	var view_pos = camera.get_screen_center_position()
+	var view_rect = (camera.get_canvas_transform().affine_inverse() * camera.get_viewport_rect().size - view_pos) * 2.0
+	return Rect2(view_pos - view_rect / 2.0, view_rect)
+
+func get_chunk_viewport_rect():
+	if not camera:
+		printerr("Cant update chunks since no camera is selected")
+		return
+		
+	var cam_rect = get_camera_view_rect()
+	var chunk_tile_size = Vector2((_chunk_size * tile_size))
+	var centered_view_position = cam_rect.position
+	var centered_world_position = Vector2i(floor(centered_view_position / chunk_tile_size))
+	var centered_world_size = Vector2i(ceil((centered_view_position + cam_rect.size) / chunk_tile_size))
+	
+	return Rect2i(centered_world_position, centered_world_size - centered_world_position)
 
 func reload_chunks():
 	if not camera:
 		printerr("Cant update chunks since no camera is selected")
 		return
-		
-	var view_rect = camera.get_viewport_rect().size
-	var view_pos = camera.get_screen_transform() * camera.get_screen_center_position()
-	if Engine.is_editor_hint():
-		view_pos += view_rect / 2.0
-	#print(view_pos, view_rect)
-	var chunk_tile_size = Vector2((chunk_size * tile_size))
-	var centered_view_position = view_pos - view_rect
-	var centered_world_position = Vector2i(floor(centered_view_position / chunk_tile_size))
-	var centered_world_size = Vector2i(ceil((centered_view_position + view_rect) / chunk_tile_size))
+	print("reload")
+	var chunk_viewport_rect = get_chunk_viewport_rect()
+	chunk_viewport_rect.position -= additional_chunks
+	chunk_viewport_rect.size += additional_chunks
 	
-	centered_world_position -= additional_chunks
-	centered_world_size += additional_chunks
-	for key in loaded_chunks.keys():
-		if key.x < centered_world_position.x || key.y < centered_world_position.y || key.x >= centered_world_size.x || key.y >= centered_world_size.y:
-			loaded_chunks.erase(key)
+	for cord in loaded_chunks.keys():
+		if cord.x < chunk_viewport_rect.position.x || cord.y < chunk_viewport_rect.position.y || cord.x >= chunk_viewport_rect.end.x || cord.y >= chunk_viewport_rect.end.y:
+			loaded_chunks.erase(cord)
 	
-	#print(centered_world_position, centered_world_size)
-	for y in range(centered_world_position.y, centered_world_size.y):
-		for x in range(centered_world_position.x, centered_world_size.x):
+	for y in range(chunk_viewport_rect.position.y, chunk_viewport_rect.end.y):
+		for x in range(chunk_viewport_rect.position.x, chunk_viewport_rect.end.x):
 			load_chunk(Vector2i(x, y))
-			
+	
 	queue_redraw()
 
 var colors = [
@@ -183,32 +198,72 @@ func _ready() -> void:
 	reload_chunks()
 
 func _draw() -> void:
-	#print("bb", loaded_chunks.size())
-	var view_rect = camera.get_viewport_rect().size
-	var view_pos = camera.get_screen_transform() * camera.get_screen_center_position()
-	if Engine.is_editor_hint():
-		view_pos += view_rect / 2.0
-	var view_offset = view_pos - view_rect / 2.0
+	if not camera:
+		return
+	print("draw")
+	var cam_rect = get_camera_view_rect()
+	var view_offset_start = (cam_rect.position) / Vector2(_chunk_size * tile_size)
+	var view_offset_end = (cam_rect.position + cam_rect.size) / Vector2(_chunk_size * tile_size)
+	var view_offset_size = view_offset_end - view_offset_start
+	
+	var chunk_viewport_rect = get_chunk_viewport_rect()
+	var texture_offset_start = view_offset_start - Vector2(chunk_viewport_rect.position)
+	var texture_offset_start_uv = texture_offset_start / Vector2(chunk_viewport_rect.size)
+	var texture_offset_size_uv = view_offset_size  / Vector2(chunk_viewport_rect.size)
+	
+	var full_size_chunk_rect = chunk_viewport_rect.size * _chunk_size
+	#var image = Image.create(full_size_chunk_rect.x, full_size_chunk_rect.y, false, Image.FORMAT_RGB8)
+	if not texture || texture.get_size() != full_size_chunk_rect:
+		texture = Image.create(full_size_chunk_rect.x, full_size_chunk_rect.y, false, Image.FORMAT_RGB8)
+		texture.fill(Color.BLACK)
+	
+	if not chunk_texture || chunk_texture.get_size() != _chunk_size:
+		chunk_texture = Image.create(_chunk_size.x, _chunk_size.y, false, Image.FORMAT_RGB8)
 	
 	for cord in loaded_chunks.keys():
-		for y in range(0, chunk_size.y):
-			for x in range(0, chunk_size.x):
+		if cord.x < chunk_viewport_rect.position.x || cord.y < chunk_viewport_rect.position.y || cord.x >= chunk_viewport_rect.end.x || cord.y >= chunk_viewport_rect.end.y:
+			continue
+		
+		var local_cord = cord - chunk_viewport_rect.position
+		
+		for y in range(0, _chunk_size.y):
+			for x in range(0, _chunk_size.x):
 				var color = colors[(cord.y * 8 + cord.x) % colors.size()].darkened( (x * 256165798413 ^ y * 84646123 ^ cord.x * 909529032 ^ cord.y * 77632234) % 100 / 100. )
-				draw_rect(Rect2(cord.x*tile_size.x*chunk_size.x + x * tile_size.x - view_offset.x, cord.y*tile_size.y*chunk_size.y + y * tile_size.y - view_offset.y, tile_size.x, tile_size.y), color, true)
-
+				texture.set_pixel(
+					x + local_cord.x * _chunk_size.x,
+					y + local_cord.y * _chunk_size.y,
+					color
+				)
+	
+	renderer.material.set_shader_parameter("TEXTURE_OFFSET_START_UV", texture_offset_start_uv)
+	renderer.material.set_shader_parameter("TEXTURE_OFFSET_SIZE_UV", texture_offset_size_uv)
+	renderer.texture = ImageTexture.create_from_image(texture)
+	
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
-		
-	if Input.is_action_pressed("right"):
-		camera.position += Vector2(tile_size.x * delta * pan_speed.x, 0.0)
-		reload_chunks()
-	if Input.is_action_pressed("left"):
-		camera.position += Vector2(-tile_size.x * delta * pan_speed.x, 0.0)
-		reload_chunks()
-	if Input.is_action_pressed("up"):
-		camera.position += Vector2(0.0, -tile_size.y * delta * pan_speed.y)
-		reload_chunks()
-	if Input.is_action_pressed("down"):
-		camera.position += Vector2(0.0, tile_size.y * delta * pan_speed.y)
+	
+	if camera:
+		if Input.is_action_just_released("scroll_up"):
+			camera.zoom *= 1.05 
+			reload_chunks()
+		if Input.is_action_just_released("scroll_down"):
+			camera.zoom *= 0.95 
+			reload_chunks()
+		if Input.is_action_pressed("right"):
+			camera.position += Vector2(tile_size.x * delta * pan_speed.x, 0.0)
+			reload_chunks()
+		if Input.is_action_pressed("left"):
+			camera.position += Vector2(-tile_size.x * delta * pan_speed.x, 0.0)
+			reload_chunks()
+		if Input.is_action_pressed("up"):
+			camera.position += Vector2(0.0, -tile_size.y * delta * pan_speed.y)
+			reload_chunks()
+		if Input.is_action_pressed("down"):
+			camera.position += Vector2(0.0, tile_size.y * delta * pan_speed.y)
+			reload_chunks()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion && Input.is_action_pressed("mouse1"):
+		camera.position -= event.relative * (Vector2(1.0, 1.0) / camera.zoom)
 		reload_chunks()
