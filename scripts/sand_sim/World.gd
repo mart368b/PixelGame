@@ -53,7 +53,7 @@ var camera: Camera2D:
 var pan_speed: Vector2 = Vector2(1.0, 1.0)
 
 var texture: Image
-var chunk_texture: Image
+var chunk_colors: PackedColorArray
 
 func load_chunk(cord: Vector2i):
 	if cord in loaded_chunks:
@@ -217,8 +217,10 @@ func _draw() -> void:
 		texture = Image.create(full_size_chunk_rect.x, full_size_chunk_rect.y, false, Image.FORMAT_RGB8)
 		texture.fill(Color.BLACK)
 	
-	if not chunk_texture || chunk_texture.get_size() != _chunk_size:
-		chunk_texture = Image.create(_chunk_size.x, _chunk_size.y, false, Image.FORMAT_RGB8)
+	if not chunk_colors || _chunk_size.x * _chunk_size.y != chunk_colors.size():
+		print("aaa")
+		chunk_colors = PackedColorArray()
+		chunk_colors.resize(_chunk_size.x * _chunk_size.y)
 	
 	for cord in loaded_chunks.keys():
 		if cord.x < chunk_viewport_rect.position.x || cord.y < chunk_viewport_rect.position.y || cord.x >= chunk_viewport_rect.end.x || cord.y >= chunk_viewport_rect.end.y:
@@ -229,12 +231,16 @@ func _draw() -> void:
 		for y in range(0, _chunk_size.y):
 			for x in range(0, _chunk_size.x):
 				var color = colors[(cord.y * 8 + cord.x) % colors.size()].darkened( (x * 256165798413 ^ y * 84646123 ^ cord.x * 909529032 ^ cord.y * 77632234) % 100 / 100. )
+				chunk_colors[x + y * _chunk_size.x] = color
 				texture.set_pixel(
 					x + local_cord.x * _chunk_size.x,
 					y + local_cord.y * _chunk_size.y,
 					color
 				)
-	
+		var chunk_image = Image.create_from_data(_chunk_size.x, _chunk_size.y, false, Image.FORMAT_RGBA8, chunk_colors.to_byte_array())
+		var chunk_region = Rect2i(0, 0, _chunk_size.x, _chunk_size.y)
+		texture.blit_rect(chunk_image, chunk_region, local_cord * _chunk_size)
+		
 	renderer.material.set_shader_parameter("TEXTURE_OFFSET_START_UV", texture_offset_start_uv)
 	renderer.material.set_shader_parameter("TEXTURE_OFFSET_SIZE_UV", texture_offset_size_uv)
 	renderer.texture = ImageTexture.create_from_image(texture)
